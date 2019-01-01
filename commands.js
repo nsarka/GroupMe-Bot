@@ -93,4 +93,5 @@ function generateResponse(req) {
 }
 
 exports.generateResponse = generateResponse;
+exports.commandList = commandList;
 
