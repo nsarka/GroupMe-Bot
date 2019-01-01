@@ -1,27 +1,41 @@
 var HTTPS = require('https');
-var cool = require('cool-ascii-faces');
+var commands = require('./commands.js');
 
+// Printidk means bot will print it cant do a command it was given instead of ignoring it
 var botID = process.env.BOT_ID;
+var botPrintIdk = process.env.BOT_PRINT_IDK;
+
+console.log("BOT_ID=" + botID);
+console.log("BOT_PRINT_IDK=" + botPrintIdk);
 
 function respond() {
-  var request = JSON.parse(this.req.chunks[0]),
-      botRegex = /^\/cool guy$/;
+  var request = JSON.parse(this.req.chunks[0]);
+
+  // Command begins with a slash
+  var botRegex = /^\//;
 
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
-    postMessage();
+
+    var idkMsg = req.name + " - I can't do that";
+    var resp = commands.generateReponse(request);
+
+    if(!resp && botPrintIdk) {
+        postMessage(idkMsg);
+    } else {
+        postMessage(resp);
+    }
+
     this.res.end();
   } else {
-    console.log("don't care");
+    // Not a message the bot cares about
     this.res.writeHead(200);
     this.res.end();
   }
 }
 
-function postMessage() {
-  var botResponse, options, body, botReq;
-
-  botResponse = cool();
+function postMessage(botResponse) {
+  var options, body, botReq;
 
   options = {
     hostname: 'api.groupme.com',
@@ -34,21 +48,21 @@ function postMessage() {
     "text" : botResponse
   };
 
-  console.log('sending ' + botResponse + ' to ' + botID);
+  console.log('Sending ' + botResponse + ' to ' + botID);
 
   botReq = HTTPS.request(options, function(res) {
       if(res.statusCode == 202) {
         //neat
       } else {
-        console.log('rejecting bad status code ' + res.statusCode);
+        console.log('Rejecting bad status code ' + res.statusCode);
       }
   });
 
   botReq.on('error', function(err) {
-    console.log('error posting message '  + JSON.stringify(err));
+    console.log('Error posting message '  + JSON.stringify(err));
   });
   botReq.on('timeout', function(err) {
-    console.log('timeout posting message '  + JSON.stringify(err));
+    console.log('Timeout posting message '  + JSON.stringify(err));
   });
   botReq.end(JSON.stringify(body));
 }
