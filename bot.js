@@ -1,6 +1,8 @@
 var HTTPS = require('https');
 var commands = require('./commands.js');
 
+require('dotenv').config();
+
 // Printidk means bot will print it cant do a command it was given instead of ignoring it
 var botID = process.env.BOT_ID;
 var botPrintIdk = process.env.BOT_PRINT_IDK;
@@ -17,8 +19,8 @@ function respond() {
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
 
-    var idkMsg = req.name + " - I can't do that";
-    var resp = commands.generateReponse(request);
+    var idkMsg = request.name + " - wtf does that even MEAN";
+    var resp = commands.generateResponse(request);
 
     if(!resp && botPrintIdk) {
         postMessage(idkMsg);
@@ -67,5 +69,5 @@ function postMessage(botResponse) {
   botReq.end(JSON.stringify(body));
 }
 
-
 exports.respond = respond;
+

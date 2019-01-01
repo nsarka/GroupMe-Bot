@@ -15,45 +15,78 @@ math.import({
 }, { override: true })
 
 
+/* Callbacks look like this
+{
+  "attachments": [],
+  "avatar_url": "https://i.groupme.com/123456789",
+  "created_at": 1302623328,
+  "group_id": "1234567890",
+  "id": "1234567890",
+  "name": "John",
+  "sender_id": "12345",
+  "sender_type": "user",
+  "source_guid": "GUID",
+  "system": false,
+  "text": "Hello world ☃☃",
+  "user_id": "1234567890"
+}
+*/
+
+
 // func must return a string
-var commandList = {
-	emote: {
+var commandList = [
+	{
 		name: "/emote",
 		desc: "Creates a random face",
 		regex: /^\/emote$/,
-		func: cool
+		func: function(req) {
+			return cool();
+		}
 	},
-	roll: {
+	{
 		name: "/roll",
 		desc: "Roll the dice (1-100)",
 		regex: /^\/roll$/,
-		func: function() {
+		func: function(req) {
 			var num = Math.floor(Math.random() * Math.floor(101)).toString();
 			return req.name + " - " + num;
 		}
 	},
-	math: {
+	{
 		name: "/math",
 		desc: "Solves math equations.",
 		regex: /^\/math/,
-		func: function() {
-			var mathExpr = request.text.slice(5);
+		func: function(req) {
+			var mathExpr = req.text.slice(5);
 			console.log("Solving " + mathExpr);
-			return req.name + " - " + mathExpr + " is " + limitedEval(mathExpr).toString();
+			var ans;
+
+			try {
+				ans = limitedEval(mathExpr);
+	                        return req.name + " - " + mathExpr + " is " + ans.toString();
+			} catch(err) {
+				//console.log(err);
+				return req.name + " - yo that expression is wack";
+			}
 		}
 	},
-};
+];
+
 
 function generateResponse(req) {
 	var resp = false;
 
-	for (var comm in commandList) {
-		if (commandList.hasOwnProperty(comm)) {
-			if(comm.regex.test(request.text)) {
-				resp = comm.func();
-				break;
-			}
-		}
+	for(var i = 0; i < commandList.length; i++) {
+		var comm = commandList[i];
+                if(comm.regex.test(req.text)) {
+                        resp = comm.func(req);
+			break;
+        	}
+	};
+
+	// Send them the help message for /help
+	if(!resp && /^\/help$/.test(req.text)) {
+		resp = "Go to http://sarka.io to read a list of available commands";
 	}
 
 	return resp;

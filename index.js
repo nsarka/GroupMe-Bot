@@ -6,7 +6,7 @@ cool        = require('cool-ascii-faces');
 bot         = require('./bot.js');
 
 // Grab environment variables from .env file
-require('dotenv').config();
+//require('dotenv').config();
 
 router = new director.http.Router({
   '/' : {
