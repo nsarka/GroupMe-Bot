@@ -1,5 +1,6 @@
 var cool = require('cool-ascii-faces');
 var bot = require('./bot.js');
+var db = require('./db.js');
 
 // Math.js stuff
 var math = require('mathjs');
@@ -40,42 +41,44 @@ var commandList = [
 		name: "/emote",
 		desc: "Creates a random face",
 		regex: /^\/emote$/,
-		func: function(req) {
-			return cool();
+		func: function(req, callback) {
+			callback(cool());
 		}
 	},
 	{
 		name: "/roll",
 		desc: "Roll the dice (1-100)",
 		regex: /^\/roll$/,
-		func: function(req) {
+		func: function(req, callback) {
 			var num = Math.floor(Math.random() * Math.floor(101)).toString();
-			return req.name + " - " + num;
+			callback(req.name + " - " + num);
 		}
 	},
 	{
 		name: "/math",
 		desc: "Solves math equations i.e. sqrt(3^2 + sin(4*5)) / 2",
 		regex: /^\/math/,
-		func: function(req) {
+		func: function(req, callback) {
 			var mathExpr = req.text.slice(5);
 			console.log("Solving " + mathExpr);
-			var ans;
+			var ans, resp;
 
 			try {
 				ans = limitedEval(mathExpr);
-	                        return req.name + " - " + mathExpr + " is " + ans.toString();
+	                        resp = req.name + " - " + mathExpr + " is " + ans.toString();
 			} catch(err) {
 				//console.log(err);
-				return req.name + " - yo that expression is wack";
+				resp = req.name + " - yo that expression is wack";
 			}
+
+			callback(resp);
 		}
 	},
         {
                 name: "/remind <hours> <message>",
                 desc: "Repeats <message> after <hours> hours. Hours can be decimals (0.5, 2.5, ...). FYI: If Big Chungus dies, the reminder won't go off.",
                 regex: /^\/remind/,
-                func: function(req) {
+                func: function(req, callback) {
                         var params = req.text.split(" ");
 			var hours = params[1];
 
@@ -88,19 +91,44 @@ var commandList = [
 				bot.postMessage(req.name + " - Reminder: " + msg);
 			}, hours * 60 * 60 * 1000); // ms
 
-			return req.name + " - " + "Setting reminder for " + msg + " in " + hours + " hour(s)";
+			var resp = req.name + " - " + "Setting reminder for " + msg + " in " + hours + " hour(s)";
+			callback(resp);
                 }
         },
+	{
+		name: "/getgbp",
+		desc: "Gets your current Good Boy Points",
+		regex: /^\/getgbp/,
+		func: function(req, callback) {
+			// This callback stuff is confusing af
+			db.getUserGbp(req.sender_id, function(gbp) {
+	                        callback(req.name + " - " + gbp.toString());
+			});
+		}
+	},
+        {
+                name: "/setgbp <gbp>",
+                desc: "Sets your current Good Boy Points",
+                regex: /^\/setgbp/,
+                func: function(req, callback) {
+			var params = req.text.split(" ");
+                        db.setUserGbp(req.sender_id, parseInt(params[1]));
+                        callback(req.name + " - Set gbp to " + params[1]);
+                }
+        }
 ];
 
 
-function generateResponse(req) {
+function generateResponse(req, callback) {
 	var resp = false;
 
 	for(var i = 0; i < commandList.length; i++) {
 		var comm = commandList[i];
                 if(comm.regex.test(req.text)) {
-                        resp = comm.func(req);
+			resp = true;
+                        comm.func(req, (response) => {
+	                        callback(response);
+			});
 			break;
         	}
 	};
@@ -108,9 +136,8 @@ function generateResponse(req) {
 	// Send them the help message for /help
 	if(!resp && /^\/help$/.test(req.text)) {
 		resp = "Go to http://sarka.io to read a list of available commands";
+	        callback(resp);
 	}
-
-	return resp;
 }
 
 exports.generateResponse = generateResponse;

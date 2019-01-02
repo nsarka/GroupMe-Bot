@@ -18,18 +18,20 @@ function respond() {
   var botRegex = /^\//;
 
   if(request.text && botRegex.test(request.text)) {
-    this.res.writeHead(200);
+    commands.generateResponse(request, (resp) => {
 
-    var idkMsg = request.name + " - wtf does that even MEAN. Type /help";
-    var resp = commands.generateResponse(request);
+        this.res.writeHead(200);
 
-    if(!resp && botPrintIdk) {
-        postMessage(idkMsg);
-    } else {
-        postMessage(resp);
-    }
+        var idkMsg = request.name + " - wtf does that even MEAN. Type /help";
 
-    this.res.end();
+        if(!resp && botPrintIdk) {
+            postMessage(idkMsg);
+        } else {
+            postMessage(resp);
+        }
+
+        this.res.end();
+    });
   } else {
     // Not a message the bot cares about
     this.res.writeHead(200);
