@@ -137,6 +137,8 @@ function generateResponse(req, callback) {
 	if(!resp && /^\/help$/.test(req.text)) {
 		resp = "Go to http://sarka.io to read a list of available commands";
 	        callback(resp);
+	} else if(!resp) {
+		callback(resp);
 	}
 }
 
