@@ -6,6 +6,7 @@ require('dotenv').config();
 // Printidk means bot will print it cant do a command it was given instead of ignoring it
 var botID = process.env.BOT_ID;
 var botPrintIdk = process.env.BOT_PRINT_IDK;
+var nodeEnv = process.env.NODE_ENV;
 
 console.log("BOT_ID=" + botID);
 console.log("BOT_PRINT_IDK=" + botPrintIdk);
@@ -19,7 +20,7 @@ function respond() {
   if(request.text && botRegex.test(request.text)) {
     this.res.writeHead(200);
 
-    var idkMsg = request.name + " - wtf does that even MEAN";
+    var idkMsg = request.name + " - wtf does that even MEAN. Type /help";
     var resp = commands.generateResponse(request);
 
     if(!resp && botPrintIdk) {
@@ -69,5 +70,10 @@ function postMessage(botResponse) {
   botReq.end(JSON.stringify(body));
 }
 
+if(nodeEnv == "production") {
+	postMessage("Big Chungus died a horrible death and had to be restarted");
+}
+
 exports.respond = respond;
+exports.postMessage = postMessage;
 

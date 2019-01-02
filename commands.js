@@ -1,4 +1,5 @@
 var cool = require('cool-ascii-faces');
+var bot = require('./bot.js');
 
 // Math.js stuff
 var math = require('mathjs');
@@ -54,7 +55,7 @@ var commandList = [
 	},
 	{
 		name: "/math",
-		desc: "Solves math equations.",
+		desc: "Solves math equations i.e. sqrt(3^2 + sin(4*5)) / 2",
 		regex: /^\/math/,
 		func: function(req) {
 			var mathExpr = req.text.slice(5);
@@ -70,6 +71,26 @@ var commandList = [
 			}
 		}
 	},
+        {
+                name: "/remind <hours> <message>",
+                desc: "Repeats <message> after <hours> hours. Hours can be decimals (0.5, 2.5, ...). FYI: If Big Chungus dies, the reminder won't go off.",
+                regex: /^\/remind/,
+                func: function(req) {
+                        var params = req.text.split(" ");
+			var hours = params[1];
+
+			var nonmsg = params[0] + " " + params[1];
+			var msg = req.text.slice(nonmsg.length + 1);
+
+                        console.log("Setting reminder for " + msg + " in " + hours + " hour(s)");
+
+			setTimeout(function() {
+				bot.postMessage(req.name + " - Reminder: " + msg);
+			}, hours * 60 * 60 * 1000); // ms
+
+			return req.name + " - " + "Setting reminder for " + msg + " in " + hours + " hour(s)";
+                }
+        },
 ];
 
 
